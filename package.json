@@ -1,0 +1,22 @@
+{
+  "name": "redux-studies",
+  "version": "0.0.0",
+  "author": "suxxus",
+  "description": "examples from The Complete Redux Book",
+  "scripts": {
+    "lint": "eslint --color  src || true",
+    "dev": "watch -p 'src/**/*.js' -c 'npm run lint'",
+    "update": "updtr"
+  },
+  "devDependencies": {
+    "eslint": "3.19.0",
+    "eslint-cli": "1.1.0",
+    "eslint-config-eslint": "4.0.0",
+    "updtr": "1.0.0",
+    "watch-cli": "0.2.1"
+  },
+  "keywords": [
+    "redux",
+    "studies"
+  ]
+}

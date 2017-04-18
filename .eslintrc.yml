@@ -1,0 +1,14 @@
+extends: eslint
+parserOptions:
+    sourceType: module
+env:
+    node: true
+    es6: true
+rules:
+    func-style:
+      - error
+      - expression
+    quotes:
+      - error
+      - single
+      - "avoid-escape"

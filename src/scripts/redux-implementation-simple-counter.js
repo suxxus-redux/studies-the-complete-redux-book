@@ -38,8 +38,8 @@ const updateView = () => {
 // calculate a new state
 const reducer = (state = {}, action) => {
     const actions = {
-        [INC]: () => Object.assign({}, appState, { counter: inc(state.counter) }),
-        [DEC]: () => Object.assign({}, appState, { counter: dec(state.counter) }),
+        [INC]: () => Object.assign({}, state, { counter: inc(state.counter) }),
+        [DEC]: () => Object.assign({}, state, { counter: dec(state.counter) }),
         DEFAULT: () => state
     };
 

@@ -18,5 +18,8 @@
   "keywords": [
     "redux",
     "studies"
-  ]
+  ],
+  "dependencies": {
+    "redux": "3.6.0"
+  }
 }

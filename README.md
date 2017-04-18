@@ -29,5 +29,12 @@ npm run `<name of script>`
  simpleCounter.decrement()
 
  ```
+### Simple Counter using Redux
+ a basic redux implementation
+ ```
+ simpleCounterRealRedux.increment()
+ simpleCounterRealRedux.decrement()
+
+ ```
 
 

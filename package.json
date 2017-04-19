@@ -4,7 +4,7 @@
   "author": "suxxus",
   "description": "examples from The Complete Redux Book",
   "scripts": {
-    "lint": "eslint --color  src || true",
+    "lint": "eslint --color --fix src || true",
     "dev": "watch -p 'src/**/*.js' -c 'npm run lint'",
     "update": "updtr"
   },

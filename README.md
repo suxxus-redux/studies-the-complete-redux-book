@@ -36,5 +36,6 @@ npm run `<name of script>`
  simpleCounterRealRedux.decrement()
 
  ```
-
+### Recipes Book
+learn to use differents parts of Redux
 

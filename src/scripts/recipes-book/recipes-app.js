@@ -1,32 +1,23 @@
 const last = require('lodash.last');
 const compose = require('lodash.compose');
 const keys = require('lodash.keys');
-const createStore = require('redux').createStore;
-const combineReducers = require('redux').combineReducers;
+const nodeFetch = require('node-fetch');
+const { createStore, combineReducers, applyMiddleware } = require('redux');
 
-const initialState = {
-    recipes: {
-        1: {
-            id: 1,
-            name: 'omelette',
-            ingredients: [1, 2]
-        }
-    },
-    ingredients: {
-        1: {
-            id: 1,
-            recipe_id: 1,
-            name: 'eggs',
-            quantity: 2
-        },
-        2: {
-            id: 2,
-            recipe_id: 1,
-            name: 'milk',
-            quantity: 1
-        }
-    },
-    results: [1]
+const initialState = {};
+
+// -----------
+// helpers
+// -----------
+const fetchRecipesData = (url, callBack) => {
+    nodeFetch(url)
+        .then(resp => resp.json())
+        .then(json => {
+            callBack(json);
+        })
+        .catch(error => {
+            console.log('error--> ', error.message);
+        });
 };
 
 // ------------
@@ -34,6 +25,8 @@ const initialState = {
 // ------------
 const ADD_RECIPE = 'add.recipe';
 const ADD_INGREDIENT = 'add.ingredient';
+const FETCH_RECIPES = 'fetch.recipes';
+const SET_RECIPES = 'set.recipes';
 
 // ------------------
 // actions creators
@@ -56,11 +49,37 @@ const addIngredient = ({ name, id, recipe_id, quantity }) => ({
     }
 });
 
+const fetchRecipes = url => ({
+    type: FETCH_RECIPES,
+    payload: url
+});
+
+const setRecipes = data => ({
+    type: SET_RECIPES,
+    payload: data
+});
+
+// ------------
+// middlewares
+// ------------
+const logMiddleware = () => next => action => {
+    console.log(`Action: ${action.type}`);
+    next(action);
+};
+
+const fetchDateMiddleware = ({ dispatch }) => next => action => {
+    if (action.type === FETCH_RECIPES) {
+        fetchRecipesData(action.payload, data => dispatch(setRecipes(data)));
+    }
+    next(action);
+};
+
 // ------------
 // reducers
 // ------------
 const results = function idsReducer(state = [], action) {
     const actions = {
+        [SET_RECIPES]: () => action.payload.results,
         [ADD_RECIPE]: () => state.concat(action.payload.id),
         DEFAULT: () => state
     };
@@ -71,6 +90,7 @@ const results = function idsReducer(state = [], action) {
 
 const recipes = function recipesReducer(state = {}, action) {
     const actions = {
+        [SET_RECIPES]: () => action.payload.recipes,
         [ADD_RECIPE]: () => Object.assign({}, state, {
             [action.payload.id]: {
                 id: action.payload.id,
@@ -97,6 +117,7 @@ const recipes = function recipesReducer(state = {}, action) {
 
 const ingredients = function ingredientsReducer(state = {}, action) {
     const actions = {
+        [SET_RECIPES]: () => action.payload.ingredients,
         [ADD_INGREDIENT]: () => Object.assign({}, state, {
             [action.payload.id]: {
                 id: action.payload.id,
@@ -122,7 +143,11 @@ const rootReducer = combineReducers({
 // -------------
 // store
 // -------------
-const store = createStore(rootReducer, initialState);
+const store = createStore(
+    rootReducer,
+    initialState,
+    applyMiddleware(logMiddleware, fetchDateMiddleware)
+);
 
 // -------------
 // app
@@ -163,7 +188,13 @@ const createRecipe = ({ name = '', ingredientsList = [] }) => {
     });
 };
 
+const fetchData = url => {
+    store.dispatch(fetchRecipes(url));
+};
+
 module.exports = {
+    fetchData,
     createRecipe,
-    store
+    subscribe: fn => store.subscribe(fn),
+    getRecipes: () => store.getState().recipes
 };

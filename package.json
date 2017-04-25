@@ -4,8 +4,9 @@
   "author": "suxxus",
   "description": "examples from The Complete Redux Book",
   "scripts": {
-    "lint": "eslint --color --fix src || true",
     "dev": "watch -p 'src/**/*.js' -c 'npm run lint'",
+    "lint": "eslint --color --fix src || true",
+    "start": "freddie",
     "update": "updtr"
   },
   "devDependencies": {
@@ -13,6 +14,7 @@
     "eslint": "3.19.0",
     "eslint-cli": "1.1.0",
     "eslint-config-eslint": "4.0.0",
+    "freddie": "0.5.1",
     "updtr": "1.0.0",
     "watch-cli": "0.2.1"
   },
@@ -24,6 +26,7 @@
     "lodash.compose": "2.4.1",
     "lodash.keys": "4.2.0",
     "lodash.last": "3.0.0",
+    "node-fetch": "1.6.3",
     "redux": "3.6.0"
   }
 }

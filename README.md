@@ -38,4 +38,7 @@ npm run `<name of script>`
  ```
 ### Recipes Book
 learn to use differents parts of Redux
+```
+recipesBook.createGuacamoleRecipe()
 
+```

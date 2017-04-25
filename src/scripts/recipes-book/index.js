@@ -1,13 +1,24 @@
-const recipes = require('./recipes-app');
-
-const store = recipes.store;
+const {
+    createRecipe,
+    fetchData,
+    getRecipes,
+    subscribe
+} = require('./recipes-app');
 
 const updateRecipes = () => {
-    console.log('updated state: \n', store.getState().recipes, '\n ==============');
+    console.log('updated state: \n', getRecipes(), '\n ==============');
+};
+
+// -------------------
+//
+// -------------------
+
+const fetchRecipesData = () => {
+    fetchData('http://localhost:4000/api/recipes');
 };
 
 const createGuacamoleRecipe = () => {
-    recipes.createRecipe({
+    createRecipe({
         name: 'Guacamole',
         ingredientsList: [{
             name: 'advocado',
@@ -20,8 +31,9 @@ const createGuacamoleRecipe = () => {
 };
 
 // subscribe for changes
-store.subscribe(updateRecipes);
+subscribe(updateRecipes);
 
 module.exports = {
-    createGuacamoleRecipe
+    createGuacamoleRecipe,
+    fetchRecipesData
 };

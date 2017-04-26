@@ -1,24 +1,19 @@
 {
-    "recipes": {
-        "1": {
+    "books": {
+        "recipes": [{
             "id": 1,
             "name": "omelette",
-            "ingredients": [1, 2]
-        }
-    },
-    "ingredients": {
-        "1": {
-            "id": 1,
-            "recipe_id": 1,
-            "name": "eggs",
-            "quantity": 2
-        },
-        "2": {
-            "id": 2,
-            "recipe_id": 1,
-            "name": "milk",
-            "quantity": 1
-        }
-    },
-    "results": [1]
+            "ingredients": [{
+                "id": 1,
+                "recipe_id": 1,
+                "name": "eggs",
+                "quantity": 2
+            }, {
+                "id": 2,
+                "recipe_id": 1,
+                "name": "milk",
+                "quantity": 1
+            }]
+        }]
+    }
 }

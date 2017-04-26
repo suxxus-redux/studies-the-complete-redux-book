@@ -2,6 +2,7 @@ const last = require('lodash.last');
 const compose = require('lodash.compose');
 const keys = require('lodash.keys');
 const nodeFetch = require('node-fetch');
+const { normalize, schema } = require('normalizr');
 const { createStore, combineReducers, applyMiddleware } = require('redux');
 
 const initialState = {};
@@ -18,6 +19,23 @@ const fetch = (url, callBack) => {
         .catch(error => {
             console.log('error--> ', error.message);
         });
+};
+
+
+
+const normalizer = (data = []) => {
+    const Ingredients = new schema.Entity('ingredients');
+    const Recipes = new schema.Entity('recipes', {
+        ingredients: [Ingredients]
+    });
+    const RecipesSchema = new schema.Array(Recipes);
+    const normalizedData = normalize(data.recipes, RecipesSchema);
+
+    return ({
+        ingredients: normalizedData.entities.ingredients,
+        recipes: normalizedData.entities.recipes,
+        result: normalizedData.result
+    });
 };
 
 // ------------
@@ -67,7 +85,7 @@ const apiMiddleware = ({ dispatch }) => next => action => {
     if (action.type === FETCH_RECIPES) {
         fetch(action.payload, data => dispatch({
             type: action.success,
-            payload: data
+            payload: normalizer(data.books)
         }));
     }
     next(action);
@@ -76,9 +94,9 @@ const apiMiddleware = ({ dispatch }) => next => action => {
 // ------------
 // reducers
 // ------------
-const results = function idsReducer(state = [], action) {
+const result = function idsReducer(state = [], action) {
     const actions = {
-        [SET_RECIPES]: () => action.payload.results,
+        [SET_RECIPES]: () => state.concat(action.payload.result),
         [ADD_RECIPE]: () => state.concat(action.payload.id),
         DEFAULT: () => state
     };
@@ -134,7 +152,7 @@ const ingredients = function ingredientsReducer(state = {}, action) {
 };
 
 const rootReducer = combineReducers({
-    results,
+    result,
     recipes,
     ingredients
 });
@@ -151,18 +169,21 @@ const store = createStore(
 // -------------
 // app
 // -------------
-const inc = value => value + 1;
+const inc = value =>  value + 1;
 const getIngredients = () => store.getState().ingredients;
-const getResult = () => store.getState().results;
+const getResult = () => store.getState().result;
+const secureValue = value => value >= 1 ? value : 0;
 
 const getRecipeId = compose(
     inc,
+    secureValue,
     last,
     getResult
 );
 
 const getIngredientId = compose(
     inc,
+    secureValue,
     parseInt,
     last,
     keys,
@@ -194,6 +215,8 @@ const fetchData = baseUrl => {
 module.exports = {
     fetchData,
     createRecipe,
+    getIngredients,
     subscribe: fn => store.subscribe(fn),
+    getResult: () => store.getState().result,
     getRecipes: () => store.getState().recipes
 };

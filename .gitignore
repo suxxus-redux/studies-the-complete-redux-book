@@ -1,5 +1,5 @@
 # Generated directories
 node_modules
 
-
+/*.lock
 .tmp

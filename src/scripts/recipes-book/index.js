@@ -1,18 +1,21 @@
 const {
     createRecipe,
     fetchData,
+    getResult,
     getRecipes,
+    getIngredients,
     subscribe
 } = require('./recipes-app');
 
 const updateRecipes = () => {
-    console.log('updated state: \n', getRecipes(), '\n ==============');
+    console.log('updated state result: \n', getResult(), '\n ==============');
+    console.log('updated state recipes: \n', getRecipes(), '\n ==============');
+    console.log('updated state ingredients: \n', getIngredients(), '\n ==============');
 };
 
 // -------------------
 // recipes App
 // -------------------
-
 const fetchRecipesData = () => {
     fetchData('http://localhost:4000');
 };
@@ -33,7 +36,7 @@ const createGuacamoleRecipe = () => {
 // subscribe for changes
 subscribe(updateRecipes);
 
-module.exports = {
-    createGuacamoleRecipe,
-    fetchRecipesData
-};
+module.exports = (() => {
+    fetchRecipesData();
+    setTimeout(() => createGuacamoleRecipe(), 10);
+})();

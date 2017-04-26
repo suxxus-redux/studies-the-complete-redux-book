@@ -9,7 +9,7 @@ const initialState = {};
 // -----------
 // helpers
 // -----------
-const fetchRecipesData = (url, callBack) => {
+const fetch = (url, callBack) => {
     nodeFetch(url)
         .then(resp => resp.json())
         .then(json => {
@@ -49,14 +49,10 @@ const addIngredient = ({ name, id, recipe_id, quantity }) => ({
     }
 });
 
-const fetchRecipes = url => ({
+const fetchRecipes = baseUrl => ({
     type: FETCH_RECIPES,
-    payload: url
-});
-
-const setRecipes = data => ({
-    type: SET_RECIPES,
-    payload: data
+    payload: `${baseUrl}/api/recipes`,
+    success: SET_RECIPES
 });
 
 // ------------
@@ -67,9 +63,12 @@ const logMiddleware = () => next => action => {
     next(action);
 };
 
-const fetchDateMiddleware = ({ dispatch }) => next => action => {
+const apiMiddleware = ({ dispatch }) => next => action => {
     if (action.type === FETCH_RECIPES) {
-        fetchRecipesData(action.payload, data => dispatch(setRecipes(data)));
+        fetch(action.payload, data => dispatch({
+            type: action.success,
+            payload: data
+        }));
     }
     next(action);
 };
@@ -146,7 +145,7 @@ const rootReducer = combineReducers({
 const store = createStore(
     rootReducer,
     initialState,
-    applyMiddleware(logMiddleware, fetchDateMiddleware)
+    applyMiddleware(logMiddleware, apiMiddleware)
 );
 
 // -------------
@@ -188,8 +187,8 @@ const createRecipe = ({ name = '', ingredientsList = [] }) => {
     });
 };
 
-const fetchData = url => {
-    store.dispatch(fetchRecipes(url));
+const fetchData = baseUrl => {
+    store.dispatch(fetchRecipes(baseUrl));
 };
 
 module.exports = {

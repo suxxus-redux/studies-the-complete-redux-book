@@ -27,6 +27,7 @@
     "lodash.keys": "4.2.0",
     "lodash.last": "3.0.0",
     "node-fetch": "1.6.3",
+    "normalizr": "^3.2.2",
     "redux": "3.6.0"
   }
 }

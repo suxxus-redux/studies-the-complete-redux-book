@@ -10,11 +10,11 @@ const updateRecipes = () => {
 };
 
 // -------------------
-//
+// recipes App
 // -------------------
 
 const fetchRecipesData = () => {
-    fetchData('http://localhost:4000/api/recipes');
+    fetchData('http://localhost:4000');
 };
 
 const createGuacamoleRecipe = () => {

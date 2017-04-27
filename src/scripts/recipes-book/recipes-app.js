@@ -65,8 +65,10 @@ const addIngredient = ({ name, id, recipe_id, quantity }) => ({
 
 const fetchRecipes = baseUrl => ({
     type: FETCH_RECIPES,
-    payload: `${baseUrl}/api/recipes`,
-    success: SET_RECIPES
+    payload: {
+        url: `${baseUrl}/api/recipes`,
+        success: SET_RECIPES
+    }
 });
 
 // ------------
@@ -80,11 +82,11 @@ const logMiddleware = () => next => action => {
 const apiMiddleware = ({ dispatch }) => next => action => {
     if (action.type === FETCH_RECIPES) {
         fetch(
-            action.payload,
-            error => log(`error fetch recipes ->  ${error.message}`),
+            action.payload.url,
+            error => log(`FETCH_RECIPES ->  ${error.message}`),
             data => {
                 dispatch({
-                    type: action.success,
+                    type: action.payload.success,
                     payload: normalizer(data.books)
                 });
             });

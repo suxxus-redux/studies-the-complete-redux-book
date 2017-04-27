@@ -38,5 +38,5 @@ subscribe(updateRecipes);
 
 module.exports = {
     fetchRecipesData,
-    createGuacamoleRecipe,
+    createGuacamoleRecipe
 };

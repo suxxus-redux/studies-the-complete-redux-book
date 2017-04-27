@@ -36,7 +36,7 @@ const createGuacamoleRecipe = () => {
 // subscribe for changes
 subscribe(updateRecipes);
 
-module.exports = (() => {
-    fetchRecipesData();
-    setTimeout(() => createGuacamoleRecipe(), 10);
-})();
+module.exports = {
+    fetchRecipesData,
+    createGuacamoleRecipe,
+};

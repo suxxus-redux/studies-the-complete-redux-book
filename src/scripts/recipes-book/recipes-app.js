@@ -10,16 +10,14 @@ const initialState = {};
 // -----------
 // helpers
 // -----------
-const fetch = (url, callBack) => {
+const log = console.log.bind(console); /* eslint no-console:"off" */
+
+const fetch = (url, onError, callBack) => {
     nodeFetch(url)
         .then(resp => resp.json())
         .then(callBack)
-        .catch(error => {
-            console.log('error--> ', error.message);
-        });
+        .catch(onError);
 };
-
-
 
 const normalizer = (data = []) => {
     const Ingredients = new schema.Entity('ingredients');
@@ -75,18 +73,21 @@ const fetchRecipes = baseUrl => ({
 // middlewares
 // ------------
 const logMiddleware = () => next => action => {
-    console.log(`Action: ${action.type}`);
+    log(`Action: ${action.type}`);
     next(action);
 };
 
 const apiMiddleware = ({ dispatch }) => next => action => {
     if (action.type === FETCH_RECIPES) {
-        fetch(action.payload, data => {
-            dispatch({
-                type: action.success,
-                payload: normalizer(data.books)
+        fetch(
+            action.payload,
+            error => log(`error fetch recipes ->  ${error.message}`),
+            data => {
+                dispatch({
+                    type: action.success,
+                    payload: normalizer(data.books)
+                });
             });
-        });
     }
     next(action);
 };

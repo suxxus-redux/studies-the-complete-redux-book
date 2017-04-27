@@ -13,9 +13,7 @@ const initialState = {};
 const fetch = (url, callBack) => {
     nodeFetch(url)
         .then(resp => resp.json())
-        .then(json => {
-            callBack(json);
-        })
+        .then(callBack)
         .catch(error => {
             console.log('error--> ', error.message);
         });
@@ -83,10 +81,12 @@ const logMiddleware = () => next => action => {
 
 const apiMiddleware = ({ dispatch }) => next => action => {
     if (action.type === FETCH_RECIPES) {
-        fetch(action.payload, data => dispatch({
-            type: action.success,
-            payload: normalizer(data.books)
-        }));
+        fetch(action.payload, data => {
+            dispatch({
+                type: action.success,
+                payload: normalizer(data.books)
+            });
+        });
     }
     next(action);
 };
@@ -169,10 +169,10 @@ const store = createStore(
 // -------------
 // app
 // -------------
-const inc = value =>  value + 1;
+const inc = value => value + 1;
 const getIngredients = () => store.getState().ingredients;
 const getResult = () => store.getState().result;
-const secureValue = value => value >= 1 ? value : 0;
+const secureValue = value => value >= 1 ? value : 0; /* eslint  no-confusing-arrow: "off" */
 
 const getRecipeId = compose(
     inc,

@@ -14,7 +14,13 @@ const log = console.log.bind(console); /* eslint no-console:"off" */
 
 const fetch = (url, onError, callBack) => {
     nodeFetch(url)
-        .then(resp => resp.json())
+        .then(resp => {
+            if (resp.status >= 300) {
+                onError({ message: `response status ${resp.status}` });
+                return;
+            }
+            return resp.json()
+        })
         .then(callBack)
         .catch(onError);
 };

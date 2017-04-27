@@ -25,6 +25,7 @@ npm run `<name of script>`
  `cd ./src`
 
  To run the exercises use a node Relp
+
  ```
  .load index.js
 

@@ -14,13 +14,21 @@ npm install
 ## Scripts
 The package.json file comes with the following scripts
 npm run `<name of script>`
+```
 `lint`: lint all code.
 `dev:` runs a dev console that reports lint and unit tests and start watching for changes at *.js files.
 `update:` update outdated npm modules.
 
+```
  ## Exercises
+
+ `cd ./src`
+
  To run the exercises use a node Relp
- `.load index.js`
+ ```
+ .load index.js
+
+ ```
 
  ### Simple Counter
  a basic redux implementation
@@ -39,6 +47,7 @@ npm run `<name of script>`
 ### Recipes Book
 learn to use differents parts of Redux
 ```
+recipesBook.fetchRecipesData()
 recipesBook.createGuacamoleRecipe()
 
 ```

@@ -8,11 +8,13 @@ const {
     subscribe
 } = require('./recipes-app');
 
+const log = console.log.bind(console); /* eslint no-console:"off" */
+
 const updateRecipes = () => {
-    console.log('updated state result: \n', getResult(), '\n ==============');
-    console.log('updated state recipes: \n', getRecipes(), '\n ==============');
-    console.log('updated state ingredients: \n', getIngredients(), '\n ==============');
-    console.log('updated state requests: \n', getRequests(), '\n ==============');
+    log('updated state result: \n', getResult(), '\n ==============');
+    log('updated state recipes: \n', getRecipes(), '\n ==============');
+    log('updated state ingredients: \n', getIngredients(), '\n ==============');
+    log('updated state requests: \n', getRequests(), '\n ==============');
 };
 
 // -------------------

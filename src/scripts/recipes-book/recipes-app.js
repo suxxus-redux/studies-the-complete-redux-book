@@ -40,6 +40,8 @@ const normalizer = (data = []) => {
     });
 };
 
+const inc = value => value + 1;
+
 // ------------
 // constants
 // ------------
@@ -47,6 +49,8 @@ const ADD_RECIPE = 'add.recipe';
 const ADD_INGREDIENT = 'add.ingredient';
 const FETCH_RECIPES = 'fetch.recipes';
 const SET_RECIPES = 'set.recipes';
+const API_STARTS = 'api.starts';
+const API_DONE = 'api.done';
 
 // ------------------
 // actions creators
@@ -77,6 +81,9 @@ const fetchRecipes = baseUrl => ({
     }
 });
 
+const apiStarts = () => ({ type: API_STARTS });
+const apiDone = () => ({ type: API_DONE });
+
 // ------------
 // middlewares
 // ------------
@@ -87,10 +94,12 @@ const logMiddleware = () => next => action => {
 
 const apiMiddleware = ({ dispatch }) => next => action => {
     if (action.type === FETCH_RECIPES) {
+        dispatch(apiStarts());
         fetch(
             action.payload.url,
             error => log(`FETCH_RECIPES ->  ${error.message}`),
             data => {
+                dispatch(apiDone());
                 dispatch({
                     type: action.payload.success,
                     payload: normalizer(data.books)
@@ -126,9 +135,7 @@ const recipes = function recipesReducer(state = {}, action) {
         }),
         [ADD_INGREDIENT]: () => {
             const recipe = state[action.payload.recipe_id];
-
             recipe.ingredients = recipe.ingredients.concat(action.payload.id);
-
             return Object.assign({}, state, {
                 [action.payload.recipe_id]: recipe
             });
@@ -154,16 +161,26 @@ const ingredients = function ingredientsReducer(state = {}, action) {
         }),
         DEFAULT: () => state
     };
+    const doAction = actions[action.type] || actions.DEFAULT;
+    return doAction();
+};
+
+const requests = function uiReducer(state = 0, action) {
+    const actions = {
+        [API_STARTS]: () => state + 1,
+        [API_DONE]: () => state - 1,
+        DEFAULT: () => state
+    };
 
     const doAction = actions[action.type] || actions.DEFAULT;
-
     return doAction();
 };
 
 const rootReducer = combineReducers({
     result,
     recipes,
-    ingredients
+    ingredients,
+    requests
 });
 
 // -------------
@@ -178,7 +195,6 @@ const store = createStore(
 // -------------
 // app
 // -------------
-const inc = value => value + 1;
 const getIngredients = () => store.getState().ingredients;
 const getResult = () => store.getState().result;
 const secureValue = value => value >= 1 ? value : 0; /* eslint  no-confusing-arrow: "off" */
@@ -227,5 +243,6 @@ module.exports = {
     getIngredients,
     subscribe: fn => store.subscribe(fn),
     getResult: () => store.getState().result,
-    getRecipes: () => store.getState().recipes
+    getRecipes: () => store.getState().recipes,
+    getRequests: () => store.getState().requests
 };

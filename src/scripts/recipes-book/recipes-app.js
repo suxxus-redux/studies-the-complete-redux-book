@@ -47,8 +47,8 @@ const inc = value => value + 1;
 // ------------
 const ADD_RECIPE = 'add.recipe';
 const ADD_INGREDIENT = 'add.ingredient';
-const FETCH_RECIPES = 'fetch.recipes';
 const SET_RECIPES = 'set.recipes';
+const API = 'api.fetch';
 const API_STARTS = 'api.starts';
 const API_DONE = 'api.done';
 
@@ -74,7 +74,7 @@ const addIngredient = ({ name, id, recipe_id, quantity }) => ({
 });
 
 const fetchRecipes = baseUrl => ({
-    type: FETCH_RECIPES,
+    type: API,
     payload: {
         url: `${baseUrl}/api/recipes`,
         success: SET_RECIPES
@@ -93,11 +93,11 @@ const logMiddleware = () => next => action => {
 };
 
 const apiMiddleware = ({ dispatch }) => next => action => {
-    if (action.type === FETCH_RECIPES) {
+    if (action.type === API) {
         dispatch(apiStarts());
         fetch(
             action.payload.url,
-            error => log(`FETCH_RECIPES ->  ${error.message}`),
+            error => log(`API ->  ${error.message}`),
             data => {
                 dispatch(apiDone());
                 dispatch({

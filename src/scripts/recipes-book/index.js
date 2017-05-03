@@ -4,6 +4,7 @@ const {
     getResult,
     getRecipes,
     getIngredients,
+    getRequests,
     subscribe
 } = require('./recipes-app');
 
@@ -11,6 +12,7 @@ const updateRecipes = () => {
     console.log('updated state result: \n', getResult(), '\n ==============');
     console.log('updated state recipes: \n', getRecipes(), '\n ==============');
     console.log('updated state ingredients: \n', getIngredients(), '\n ==============');
+    console.log('updated state requests: \n', getRequests(), '\n ==============');
 };
 
 // -------------------

@@ -17,9 +17,9 @@ const fetch = (url, onError, callBack) => {
         .then(resp => {
             if (resp.status >= 300) {
                 onError({ message: `response status ${resp.status}` });
-                return;
+                return {};
             }
-            return resp.json()
+            return resp.json();
         })
         .then(callBack)
         .catch(onError);
@@ -135,6 +135,7 @@ const recipes = function recipesReducer(state = {}, action) {
         }),
         [ADD_INGREDIENT]: () => {
             const recipe = state[action.payload.recipe_id];
+
             recipe.ingredients = recipe.ingredients.concat(action.payload.id);
             return Object.assign({}, state, {
                 [action.payload.recipe_id]: recipe
@@ -162,6 +163,7 @@ const ingredients = function ingredientsReducer(state = {}, action) {
         DEFAULT: () => state
     };
     const doAction = actions[action.type] || actions.DEFAULT;
+
     return doAction();
 };
 
@@ -173,6 +175,7 @@ const requests = function uiReducer(state = 0, action) {
     };
 
     const doAction = actions[action.type] || actions.DEFAULT;
+
     return doAction();
 };
 

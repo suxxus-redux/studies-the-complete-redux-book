@@ -13,5 +13,6 @@ module.exports = {
 // test
 module.exports = (function() {
     recipesBook.fetchRecipesData();
-    recipesBook.createGuacamoleRecipe();
+
+//    recipesBook.createGuacamoleRecipe();
 }());

@@ -11,10 +11,11 @@ const {
 const log = console.log.bind(console); /* eslint no-console:"off" */
 
 const updateRecipes = () => {
-   // log('updated state result: \n', getResult(), '\n ==============');
+
+    log('updated state result: \n', getResult(), '\n ==============');
     log('updated state recipes: \n', getRecipes(), '\n ==============');
-    // log('updated state ingredients: \n', getIngredients(), '\n ==============');
-     log('updated state requests: \n', getRequests(), '\n ==============');
+    log('updated state ingredients: \n', getIngredients(), '\n ==============');
+    log('updated state requests: \n', getRequests(), '\n ==============');
 };
 
 // -------------------

@@ -46,17 +46,17 @@ const inc = value => value + 1;
 // constants
 // ------------
 
-const ASYNC_ACTION_TYPES = type => ({
+const asyncActionTypes = type => ({
     PENDING: `${type}_PENDING`,
     SUCCESS: `${type}_SUCCESS`,
-    ERROR: `${type}_ERROR`,
+    ERROR: `${type}_ERROR`
 });
 const ADD_RECIPE = 'add.recipe';
 const ADD_INGREDIENT = 'add.ingredient';
 const API = 'api.fetch';
 const API_STARTS = 'api.starts';
 const API_DONE = 'api.done';
-const FETCH_RECIPES = ASYNC_ACTION_TYPES('FETCH_RECIPES');
+const FETCH_RECIPES = asyncActionTypes('FETCH_RECIPES');
 
 // ------------------
 // actions creators
@@ -101,7 +101,8 @@ const apiMiddleware = ({ dispatch }) => next => action => {
         fetch(
             action.payload.url,
             error => dispatch({
-                type: action.payload.ERROR
+                type: action.payload.ERROR,
+                payload: error
             }),
             data => {
                 dispatch(apiDone());
@@ -188,7 +189,7 @@ const rootReducer = combineReducers({
     result,
     recipes,
     requests,
-    ingredients,
+    ingredients
 });
 
 // -------------

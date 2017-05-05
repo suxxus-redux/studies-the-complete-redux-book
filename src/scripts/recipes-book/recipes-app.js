@@ -25,6 +25,12 @@ const fetch = (url, onError, callBack) => {
         .catch(onError);
 };
 
+const inc = value => value + 1;
+const secureValue = value => value >= 1 ? value : 0; /* eslint  no-confusing-arrow: "off" */
+
+// --------------
+// data helpler
+// --------------
 const normalizer = (data = []) => {
     const Ingredients = new schema.Entity('ingredients');
     const Recipes = new schema.Entity('recipes', {
@@ -40,12 +46,9 @@ const normalizer = (data = []) => {
     });
 };
 
-const inc = value => value + 1;
-
 // ------------
 // constants
 // ------------
-
 const asyncActionTypes = type => ({
     PENDING: `${type}.pending`,
     SUCCESS: `${type}.success`,
@@ -218,10 +221,13 @@ const store = createStore(
     initialState,
     applyMiddleware(logMiddleware, apiMiddleware)
 );
+
 const getIngredients = () => store.getState().ingredients;
 const getResult = () => store.getState().result;
-const secureValue = value => value >= 1 ? value : 0; /* eslint  no-confusing-arrow: "off" */
 
+// ----------------
+// recipe creator
+// ----------------
 const getRecipeId = compose(
     inc,
     secureValue,
@@ -256,17 +262,14 @@ const createRecipe = ({ name = '', ingredientsList = [] }) => {
     });
 };
 
-const fetchData = baseUrl => {
-    store.dispatch(fetchRecipes(baseUrl));
-};
-
+// ------------------------------
 module.exports = {
-    fetchData,
     createRecipe,
     getIngredients,
-    subscribe: fn => store.subscribe(fn),
+    fetchData: baseUrl => store.dispatch(fetchRecipes(baseUrl));,
     getResult: () => store.getState().result,
     getRecipes: () => store.getState().recipes,
     getRequests: () => store.getState().requests,
     getRequestsError: () => store.getState().requestsError
+    subscribe: fn => store.subscribe(fn),
 };

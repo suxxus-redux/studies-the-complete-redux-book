@@ -109,8 +109,7 @@ const logMiddleware = () => next => action => {
     next(action);
 };
 
-const apiMiddleware = ({ dispatch, getState }) => next => action => {
-    console.log(getState());
+const apiMiddleware = ({ dispatch }) => next => action => {
     if (action.type === API) {
         dispatch(apiStarts());
         fetch(
@@ -289,9 +288,11 @@ module.exports = {
     getIngredients,
     setApiKey: value => store.dispatch(addApiKey(value)),
     fetchData: baseUrl => store.dispatch(fetchRecipes(baseUrl)),
-    getResult: () => store.getState().result,
+    getState: () => Object.assign({}, store.getState()),
+
+    /* getResult: () => store.getState().result,
     getRecipes: () => store.getState().recipes,
     getRequests: () => store.getState().requests,
-    getRequestsError: () => store.getState().requestsError,
+    getRequestsError: () => store.getState().requestsError,*/
     subscribe: fn => store.subscribe(fn)
 };

@@ -45,12 +45,18 @@ const inc = value => value + 1;
 // ------------
 // constants
 // ------------
+
+const ASYNC_ACTION_TYPES = type => ({
+    PENDING: `${type}_PENDING`,
+    SUCCESS: `${type}_SUCCESS`,
+    ERROR: `${type}_ERROR`,
+});
 const ADD_RECIPE = 'add.recipe';
 const ADD_INGREDIENT = 'add.ingredient';
-const SET_RECIPES = 'set.recipes';
 const API = 'api.fetch';
 const API_STARTS = 'api.starts';
 const API_DONE = 'api.done';
+const FETCH_RECIPES = ASYNC_ACTION_TYPES('FETCH_RECIPES');
 
 // ------------------
 // actions creators
@@ -75,10 +81,7 @@ const addIngredient = ({ name, id, recipe_id, quantity }) => ({
 
 const fetchRecipes = baseUrl => ({
     type: API,
-    payload: {
-        url: `${baseUrl}/api/recipes`,
-        success: SET_RECIPES
-    }
+    payload: Object.assign({ url: `${baseUrl}/api/recipes` }, FETCH_RECIPES)
 });
 
 const apiStarts = () => ({ type: API_STARTS });
@@ -97,11 +100,13 @@ const apiMiddleware = ({ dispatch }) => next => action => {
         dispatch(apiStarts());
         fetch(
             action.payload.url,
-            error => log(`API ->  ${error.message}`),
+            error => dispatch({
+                type: action.payload.ERROR
+            }),
             data => {
                 dispatch(apiDone());
                 dispatch({
-                    type: action.payload.success,
+                    type: action.payload.SUCCESS,
                     payload: normalizer(data.books)
                 });
             });
@@ -114,7 +119,7 @@ const apiMiddleware = ({ dispatch }) => next => action => {
 // ------------
 const result = function idsReducer(state = [], action) {
     const actions = {
-        [SET_RECIPES]: () => state.concat(action.payload.result),
+        [FETCH_RECIPES.SUCCESS]: () => state.concat(action.payload.result),
         [ADD_RECIPE]: () => state.concat(action.payload.id),
         DEFAULT: () => state
     };
@@ -125,7 +130,7 @@ const result = function idsReducer(state = [], action) {
 
 const recipes = function recipesReducer(state = {}, action) {
     const actions = {
-        [SET_RECIPES]: () => action.payload.recipes,
+        [FETCH_RECIPES.SUCCESS]: () => Object.assign({}, state, action.payload.recipes),
         [ADD_RECIPE]: () => Object.assign({}, state, {
             [action.payload.id]: {
                 id: action.payload.id,
@@ -151,7 +156,7 @@ const recipes = function recipesReducer(state = {}, action) {
 
 const ingredients = function ingredientsReducer(state = {}, action) {
     const actions = {
-        [SET_RECIPES]: () => action.payload.ingredients,
+        [FETCH_RECIPES.SUCCESS]: () => action.payload.ingredients,
         [ADD_INGREDIENT]: () => Object.assign({}, state, {
             [action.payload.id]: {
                 id: action.payload.id,
@@ -182,8 +187,8 @@ const requests = function uiReducer(state = 0, action) {
 const rootReducer = combineReducers({
     result,
     recipes,
+    requests,
     ingredients,
-    requests
 });
 
 // -------------
@@ -194,10 +199,6 @@ const store = createStore(
     initialState,
     applyMiddleware(logMiddleware, apiMiddleware)
 );
-
-// -------------
-// app
-// -------------
 const getIngredients = () => store.getState().ingredients;
 const getResult = () => store.getState().result;
 const secureValue = value => value >= 1 ? value : 0; /* eslint  no-confusing-arrow: "off" */

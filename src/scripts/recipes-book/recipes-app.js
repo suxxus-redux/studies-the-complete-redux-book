@@ -93,8 +93,7 @@ const fetchRecipes = baseUrl => ({
     type: API,
     payload: Object.assign({
         endpoint: `${baseUrl}/api/recipes`,
-        method: 'GET',
-        headers: { Accept: 'application/json' }
+        method: 'GET'
     }, FETCH_RECIPES)
 });
 
@@ -109,11 +108,16 @@ const logMiddleware = () => next => action => {
     next(action);
 };
 
-const apiMiddleware = ({ dispatch }) => next => action => {
+const apiMiddleware = ({ dispatch, getState }) => next => action => {
     if (action.type === API) {
         dispatch(apiStarts());
         fetch(
-            action.payload,
+            Object.assign({}, action.payload, {
+                headers: {
+                    'X-Auth-Token': getState().apiKey,
+                    Accept: 'application/json'
+                }
+            }),
             error => {
                 dispatch(apiDone());
                 dispatch({

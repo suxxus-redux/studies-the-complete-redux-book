@@ -12,6 +12,7 @@ module.exports = {
 
 // test
 (function() {
+    recipesBook.setApiKey('fa8426a0-8eaf-4d22-8e13-7c1b16a9370c');
     recipesBook.fetchRecipesData();
 
     // add a recipe

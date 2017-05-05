@@ -12,8 +12,8 @@ const initialState = {};
 // -----------
 const log = console.log.bind(console); /* eslint no-console:"off" */
 
-const fetch = (url, onError, callBack) => {
-    nodeFetch(url)
+const fetch = ({ endpoint, method, headers }, onError, callBack) => {
+    nodeFetch(endpoint, { method, headers })
         .then(resp => {
             if (resp.status >= 300) {
                 onError({ message: `response status ${resp.status}` });
@@ -60,10 +60,17 @@ const API = 'api.fetch';
 const API_STARTS = 'api.starts';
 const API_DONE = 'api.done';
 const FETCH_RECIPES = asyncActionTypes('fetch.recipes');
+const ADD_API_KEY = 'api.key';
 
 // ------------------
 // actions creators
 // ------------------
+
+const addApiKey = apiKey => ({
+    type: ADD_API_KEY,
+    payload: apiKey
+});
+
 const addRecipe = ({ name, id }) => ({
     type: ADD_RECIPE,
     payload: {
@@ -84,7 +91,11 @@ const addIngredient = ({ name, id, recipe_id, quantity }) => ({
 
 const fetchRecipes = baseUrl => ({
     type: API,
-    payload: Object.assign({ url: `${baseUrl}/api/recipes` }, FETCH_RECIPES)
+    payload: Object.assign({
+        endpoint: `${baseUrl}/api/recipes`,
+        method: 'GET',
+        headers: { Accept: 'application/json' }
+    }, FETCH_RECIPES)
 });
 
 const apiStarts = () => ({ type: API_STARTS });
@@ -98,11 +109,12 @@ const logMiddleware = () => next => action => {
     next(action);
 };
 
-const apiMiddleware = ({ dispatch }) => next => action => {
+const apiMiddleware = ({ dispatch, getState }) => next => action => {
+    console.log(getState());
     if (action.type === API) {
         dispatch(apiStarts());
         fetch(
-            action.payload.url,
+            action.payload,
             error => {
                 dispatch(apiDone());
                 dispatch({
@@ -124,6 +136,14 @@ const apiMiddleware = ({ dispatch }) => next => action => {
 // ------------
 // reducers
 // ------------
+const apiKey = function apiKeyReducer(state = '', action) {
+    if (action.type === ADD_API_KEY) {
+        return action.payload;
+    }
+
+    return state;
+};
+
 const result = function idsReducer(state = [], action) {
     const actions = {
         [FETCH_RECIPES.SUCCESS]: () => state.concat(action.payload.result),
@@ -206,6 +226,7 @@ const requestsError = function fetchErrorsReducer(state = {}, action) {
 };
 
 const rootReducer = combineReducers({
+    apiKey,
     result,
     recipes,
     requests,
@@ -266,10 +287,11 @@ const createRecipe = ({ name = '', ingredientsList = [] }) => {
 module.exports = {
     createRecipe,
     getIngredients,
-    fetchData: baseUrl => store.dispatch(fetchRecipes(baseUrl));,
+    setApiKey: value => store.dispatch(addApiKey(value)),
+    fetchData: baseUrl => store.dispatch(fetchRecipes(baseUrl)),
     getResult: () => store.getState().result,
     getRecipes: () => store.getState().recipes,
     getRequests: () => store.getState().requests,
-    getRequestsError: () => store.getState().requestsError
-    subscribe: fn => store.subscribe(fn),
+    getRequestsError: () => store.getState().requestsError,
+    subscribe: fn => store.subscribe(fn)
 };

@@ -6,6 +6,7 @@ const {
     getIngredients,
     getRequests,
     getRequestsError,
+    setApiKey,
     subscribe
 } = require('./recipes-app');
 
@@ -44,6 +45,7 @@ const createGuacamoleRecipe = () => {
 subscribe(updateRecipes);
 
 module.exports = {
+    setApiKey,
     fetchRecipesData,
     createGuacamoleRecipe
 };

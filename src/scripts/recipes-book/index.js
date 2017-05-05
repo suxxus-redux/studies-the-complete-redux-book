@@ -5,6 +5,7 @@ const {
     getRecipes,
     getIngredients,
     getRequests,
+    getRequestsError,
     subscribe
 } = require('./recipes-app');
 
@@ -12,10 +13,11 @@ const log = console.log.bind(console); /* eslint no-console:"off" */
 
 const updateRecipes = () => {
 
-    log('updated state result: \n', getResult(), '\n ==============');
-    log('updated state recipes: \n', getRecipes(), '\n ==============');
-    log('updated state ingredients: \n', getIngredients(), '\n ==============');
-    log('updated state requests: \n', getRequests(), '\n ==============');
+    log('state --> result: \n', getResult(), '\n ==============');
+    log('state --> recipes: \n', getRecipes(), '\n ==============');
+    log('state --> ingredients: \n', getIngredients(), '\n ==============');
+    log('state --> requestsError: \n', getRequestsError(), '\n ==============');
+    log('state --> requests: \n', getRequests(), '\n ==============');
 };
 
 // -------------------

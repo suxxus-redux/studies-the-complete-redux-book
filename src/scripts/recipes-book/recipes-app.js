@@ -47,16 +47,16 @@ const inc = value => value + 1;
 // ------------
 
 const asyncActionTypes = type => ({
-    PENDING: `${type}_PENDING`,
-    SUCCESS: `${type}_SUCCESS`,
-    ERROR: `${type}_ERROR`
+    PENDING: `${type}.pending`,
+    SUCCESS: `${type}.success`,
+    ERROR: `${type}.error`
 });
 const ADD_RECIPE = 'add.recipe';
 const ADD_INGREDIENT = 'add.ingredient';
 const API = 'api.fetch';
 const API_STARTS = 'api.starts';
 const API_DONE = 'api.done';
-const FETCH_RECIPES = asyncActionTypes('FETCH_RECIPES');
+const FETCH_RECIPES = asyncActionTypes('fetch.recipes');
 
 // ------------------
 // actions creators
@@ -100,10 +100,13 @@ const apiMiddleware = ({ dispatch }) => next => action => {
         dispatch(apiStarts());
         fetch(
             action.payload.url,
-            error => dispatch({
-                type: action.payload.ERROR,
-                payload: error
-            }),
+            error => {
+                dispatch(apiDone());
+                dispatch({
+                    type: action.payload.ERROR,
+                    payload: error
+                });
+            },
             data => {
                 dispatch(apiDone());
                 dispatch({
@@ -179,6 +182,20 @@ const requests = function uiReducer(state = 0, action) {
         [API_DONE]: () => state - 1,
         DEFAULT: () => state
     };
+    const doAction = actions[action.type] || actions.DEFAULT;
+
+    return doAction();
+};
+
+const requestsError = function fetchErrorsReducer(state = {}, action) {
+    const actions = {
+        [FETCH_RECIPES.SUCCESS]: () => Object.create(null),
+        [FETCH_RECIPES.ERROR]: () => ({
+            name: action.payload.name,
+            message: action.payload.message
+        }),
+        DEFAULT: () => state
+    };
 
     const doAction = actions[action.type] || actions.DEFAULT;
 
@@ -189,6 +206,7 @@ const rootReducer = combineReducers({
     result,
     recipes,
     requests,
+    requestsError,
     ingredients
 });
 
@@ -249,5 +267,6 @@ module.exports = {
     subscribe: fn => store.subscribe(fn),
     getResult: () => store.getState().result,
     getRecipes: () => store.getState().recipes,
-    getRequests: () => store.getState().requests
+    getRequests: () => store.getState().requests,
+    getRequestsError: () => store.getState().requestsError
 };

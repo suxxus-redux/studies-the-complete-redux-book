@@ -11,8 +11,11 @@ module.exports = {
 */
 
 // test
-module.exports = (function() {
+(function() {
     recipesBook.fetchRecipesData();
 
-//    recipesBook.createGuacamoleRecipe();
+    // add a recipe
+    setTimeout(() => {
+        recipesBook.createGuacamoleRecipe();
+    }, 10);
 }());

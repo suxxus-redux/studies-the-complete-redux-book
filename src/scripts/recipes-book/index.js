@@ -1,12 +1,6 @@
 const {
     createRecipe,
     fetchData,
-
-    // getResult,
-    // getRecipes,
-    // getIngredients,
-    // getRequests,
-    // getRequestsError,
     getState,
     setApiKey,
     subscribe
@@ -15,12 +9,6 @@ const {
 const log = console.log.bind(console); /* eslint no-console:"off" */
 
 const updateRecipes = () => {
-
-    // log('state --> result: \n', getResult(), '\n ==============');
-    // log('state --> recipes: \n', getRecipes(), '\n ==============');
-    // log('state --> ingredients: \n', getIngredients(), '\n ==============');
-    // log('state --> requestsError: \n', getRequestsError(), '\n ==============');
-    // log('state --> requests: \n', getRequests(), '\n ==============');
     log('state --> \n', getState(), '\n ==============');
 };
 

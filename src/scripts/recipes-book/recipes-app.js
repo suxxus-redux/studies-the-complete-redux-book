@@ -65,7 +65,6 @@ const ADD_API_KEY = 'api.key';
 // ------------------
 // actions creators
 // ------------------
-
 const addApiKey = apiKey => ({
     type: ADD_API_KEY,
     payload: apiKey
@@ -293,10 +292,5 @@ module.exports = {
     setApiKey: value => store.dispatch(addApiKey(value)),
     fetchData: baseUrl => store.dispatch(fetchRecipes(baseUrl)),
     getState: () => Object.assign({}, store.getState()),
-
-    /* getResult: () => store.getState().result,
-    getRecipes: () => store.getState().recipes,
-    getRequests: () => store.getState().requests,
-    getRequestsError: () => store.getState().requestsError,*/
     subscribe: fn => store.subscribe(fn)
 };

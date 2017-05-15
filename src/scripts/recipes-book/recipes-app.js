@@ -1,29 +1,23 @@
 const last = require('lodash.last');
+const createSagaMiddleware = require('redux-saga').default;
 const compose = require('lodash.compose');
 const keys = require('lodash.keys');
 const nodeFetch = require('node-fetch');
 const { normalize, schema } = require('normalizr');
 const { createStore, combineReducers, applyMiddleware } = require('redux');
-
-const initialState = {};
+const { all, call, put, takeEvery, select } = require('redux-saga/effects');
 
 // -----------
 // helpers
 // -----------
 const log = console.log.bind(console); /* eslint no-console:"off" */
 
-const fetch = ({ endpoint, method, headers }, onError, callBack) => {
-    nodeFetch(endpoint, { method, headers })
-        .then(resp => {
-            if (resp.status >= 300) {
-                onError({ message: `response status ${resp.status}` });
-                return {};
-            }
-            return resp.json();
-        })
-        .then(callBack)
-        .catch(onError);
-};
+const fetch = (endpoint, options) =>
+    nodeFetch(endpoint, options)
+    .then(resp => resp.json()
+        .then(json => ({ status: resp.status, json }))
+    )
+    .catch(error => ({ error }));
 
 const inc = value => value + 1;
 const secureValue = value => value >= 1 ? value : 0; /* eslint  no-confusing-arrow: "off" */
@@ -102,38 +96,63 @@ const apiDone = () => ({ type: API_DONE });
 // ------------
 // middlewares
 // ------------
-const logMiddleware = () => next => action => {
-    log(`Action: ${action.type}`);
-    next(action);
+const logger = function *() {
+    yield takeEvery('*', function *(action) {
+        yield log(`ACTION: ${action.type}`);
+    });
 };
 
-const apiMiddleware = ({ dispatch, getState }) => next => action => {
-    if (action.type === API) {
-        dispatch(apiStarts());
-        fetch(
-            Object.assign({}, action.payload, {
-                headers: {
-                    'X-Auth-Token': getState().apiKey,
-                    Accept: 'application/json'
-                }
-            }),
-            error => {
-                dispatch(apiDone());
-                dispatch({
-                    type: action.payload.ERROR,
-                    payload: error
-                });
-            },
-            data => {
-                dispatch(apiDone());
-                dispatch({
-                    type: action.payload.SUCCESS,
-                    payload: normalizer(data.books)
-                });
-            });
+const fetchApiData = function *(action) {
+    yield put(apiStarts());
+    const state = yield select();
+
+    const { status, json, error } = yield call(fetch, action.payload.endpoint, {
+        method: action.payload.method,
+        headers: {
+            'X-Auth-Token': state.apiKey,
+            Accept: 'application/json'
+        }
+    });
+
+    if (status >= 300) {
+        yield put({
+            type: action.payload.ERROR,
+            payload: ({
+                name: 'response status',
+                message: status
+            })
+        });
     }
-    next(action);
+
+    if (status === 200 && json) {
+        yield put({
+            type: action.payload.SUCCESS,
+            payload: normalizer(json.books)
+        });
+    }
+
+    if (error) {
+        yield put({
+            type: action.payload.ERROR,
+            payload: error
+        });
+    }
+
+    yield put(apiDone());
 };
+
+const api = function *() {
+    yield takeEvery(API, fetchApiData);
+};
+
+const rootSaga = function *() {
+    yield all([
+        logger(),
+        api()
+    ]);
+};
+
+const sagaMiddleware = createSagaMiddleware();
 
 // ------------
 // reducers
@@ -241,16 +260,17 @@ const rootReducer = combineReducers({
 // -------------
 const store = createStore(
     rootReducer,
-    initialState,
-    applyMiddleware(logMiddleware, apiMiddleware)
+    applyMiddleware(sagaMiddleware)
 );
 
 const getIngredients = () => store.getState().ingredients;
 const getResult = () => store.getState().result;
 
+
 // ----------------
 // recipe creator
 // ----------------
+
 const getRecipeId = compose(
     inc,
     secureValue,
@@ -284,6 +304,8 @@ const createRecipe = ({ name = '', ingredientsList = [] }) => {
         store.dispatch(addIngredient(ingredientWithId));
     });
 };
+
+sagaMiddleware.run(rootSaga);
 
 // ------------------------------
 module.exports = {

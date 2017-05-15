@@ -18,5 +18,5 @@ module.exports = {
     // add a recipe
     setTimeout(() => {
         recipesBook.createGuacamoleRecipe();
-    }, 10);
+    }, 100);
 }());

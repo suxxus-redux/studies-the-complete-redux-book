@@ -1,8 +1,11 @@
 # REDUX STUDIES
 
 ## Desc
-Studie of Redux Architecture, material
+Studies of Redux Architecture, material
 - [The complete Redux Book (Dinkevich & Gelman)](https://leanpub.com/redux-book)
+
+## Links
+* [The Tao of Redux, Part 1](http://blog.isquaredsoftware.com/2017/05/idiomatic-redux-tao-of-redux-part-1/)
 
 ## Clone the repo and install
 ```
@@ -14,12 +17,11 @@ npm install
 ## Scripts
 The package.json file comes with the following scripts
 npm run `<name of script>`
-```
+
 `lint`: lint all code.
 `dev:` runs a dev console that reports lint and unit tests and start watching for changes at *.js files.
 `update:` update outdated npm modules.
 
-```
  ## Exercises
 
  `cd ./src`
@@ -30,7 +32,6 @@ npm run `<name of script>`
  .load index.js
 
  ```
-
  ### Simple Counter
  a basic redux implementation
  ```

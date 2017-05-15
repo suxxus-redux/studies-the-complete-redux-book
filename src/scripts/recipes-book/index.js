@@ -1,6 +1,7 @@
 const {
     createRecipe,
     fetchRecipesData,
+    cancelFetchRecipes,
     getState,
     setApiKey,
     subscribe
@@ -38,5 +39,6 @@ subscribe(updateRecipes);
 module.exports = {
     setApiKey,
     fetchRecipes,
+    cancelFetchRecipes,
     createGuacamoleRecipe
 };

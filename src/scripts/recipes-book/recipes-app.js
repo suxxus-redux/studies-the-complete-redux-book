@@ -5,7 +5,7 @@ const keys = require('lodash.keys');
 const nodeFetch = require('node-fetch');
 const { normalize, schema } = require('normalizr');
 const { createStore, combineReducers, applyMiddleware } = require('redux');
-const { all, call, put, takeEvery, select } = require('redux-saga/effects');
+const { all, call, cancel, fork, put, takeEvery, takeLatest, select } = require('redux-saga/effects');
 
 // -----------
 // helpers
@@ -54,6 +54,7 @@ const ADD_INGREDIENT = 'add.ingredient';
 const API = {
     RECIPES: 'api.fetch.recipes'
 };
+const API_CANCEL_FETCH_RECIPES = 'api.cancel.fetch.recipes';
 const API_STARTS = 'api.starts';
 const API_DONE = 'api.done';
 const FETCH_RECIPES = asyncActionTypes('fetch.recipes');
@@ -66,6 +67,8 @@ const addApiKey = apiKey => ({
     type: ADD_API_KEY,
     payload: apiKey
 });
+
+const apiCancelFetchRecipes = () => ({ type: API_CANCEL_FETCH_RECIPES });
 
 const addRecipe = ({ name, id }) => ({
     type: ADD_RECIPE,
@@ -97,7 +100,7 @@ const apiStarts = () => ({ type: API_STARTS });
 const apiDone = () => ({ type: API_DONE });
 
 // ------------
-// middlewares
+// sagas
 // ------------
 const logger = function*() {
     yield takeEvery('*', function*(action) {
@@ -145,8 +148,14 @@ const fetchApiData = onSuccess =>
         yield put(apiDone());
     };
 
+const cancelApiTask = function*(task) {
+    yield cancel(task);
+    yield put(apiDone());
+};
+
 const apifetchRecipes = function*() {
-    yield takeEvery(API.RECIPES, fetchApiData(json => normalizer(json.books)));
+    const fetchTask = yield fork(takeEvery, API.RECIPES, fetchApiData(json => normalizer(json.books)));
+    yield fork(takeLatest, API_CANCEL_FETCH_RECIPES, cancelApiTask, fetchTask);
 };
 
 const rootSaga = function*() {
@@ -317,6 +326,7 @@ module.exports = {
     getIngredients,
     setApiKey: value => store.dispatch(addApiKey(value)),
     fetchRecipesData: baseUrl => store.dispatch(fetchRecipes(baseUrl)),
+    cancelFetchRecipes: () => store.dispatch(apiCancelFetchRecipes()),
     getState: () => Object.assign({}, store.getState()),
     subscribe: fn => store.subscribe(fn)
 };

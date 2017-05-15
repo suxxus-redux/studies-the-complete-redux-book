@@ -15,8 +15,10 @@ module.exports = {
     recipesBook.setApiKey('fa8426a0-8eaf-4d22-8e13-7c1b16a9370c');
     recipesBook.fetchRecipes();
 
+    // setTimeout(() => recipesBook.cancelFetchRecipes(), 500);
+
     // add a recipe
     setTimeout(() => {
         recipesBook.createGuacamoleRecipe();
-    }, 100);
+    }, 2000);
 }());

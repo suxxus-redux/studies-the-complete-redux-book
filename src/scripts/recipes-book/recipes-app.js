@@ -48,9 +48,12 @@ const asyncActionTypes = type => ({
     SUCCESS: `${type}.success`,
     ERROR: `${type}.error`
 });
+
 const ADD_RECIPE = 'add.recipe';
 const ADD_INGREDIENT = 'add.ingredient';
-const API = 'api.fetch';
+const API = {
+    RECIPES: 'api.fetch.recipes'
+};
 const API_STARTS = 'api.starts';
 const API_DONE = 'api.done';
 const FETCH_RECIPES = asyncActionTypes('fetch.recipes');
@@ -83,7 +86,7 @@ const addIngredient = ({ name, id, recipe_id, quantity }) => ({
 });
 
 const fetchRecipes = baseUrl => ({
-    type: API,
+    type: API.RECIPES,
     payload: Object.assign({
         endpoint: `${baseUrl}/api/recipes`,
         method: 'GET'
@@ -96,59 +99,60 @@ const apiDone = () => ({ type: API_DONE });
 // ------------
 // middlewares
 // ------------
-const logger = function *() {
-    yield takeEvery('*', function *(action) {
+const logger = function*() {
+    yield takeEvery('*', function*(action) {
         yield log(`ACTION: ${action.type}`);
     });
 };
 
-const fetchApiData = function *(action) {
-    yield put(apiStarts());
-    const state = yield select();
+const fetchApiData = onSuccess =>
+    function*(action) {
+        yield put(apiStarts());
+        const state = yield select();
 
-    const { status, json, error } = yield call(fetch, action.payload.endpoint, {
-        method: action.payload.method,
-        headers: {
-            'X-Auth-Token': state.apiKey,
-            Accept: 'application/json'
+        const { status, json, error } = yield call(fetch, action.payload.endpoint, {
+            method: action.payload.method,
+            headers: {
+                'X-Auth-Token': state.apiKey,
+                Accept: 'application/json'
+            }
+        });
+
+        if (status >= 300) {
+            yield put({
+                type: action.payload.ERROR,
+                payload: ({
+                    name: 'response status',
+                    message: status
+                })
+            });
         }
-    });
 
-    if (status >= 300) {
-        yield put({
-            type: action.payload.ERROR,
-            payload: ({
-                name: 'response status',
-                message: status
-            })
-        });
-    }
+        if (status === 200 && json) {
+            yield put({
+                type: action.payload.SUCCESS,
+                payload: onSuccess(json)
+            });
+        }
 
-    if (status === 200 && json) {
-        yield put({
-            type: action.payload.SUCCESS,
-            payload: normalizer(json.books)
-        });
-    }
+        if (error) {
+            yield put({
+                type: action.payload.ERROR,
+                payload: error
+            });
+        }
 
-    if (error) {
-        yield put({
-            type: action.payload.ERROR,
-            payload: error
-        });
-    }
+        yield put(apiDone());
+    };
 
-    yield put(apiDone());
+const apifetchRecipes = function*() {
+    yield takeEvery(API.RECIPES, fetchApiData(json => normalizer(json.books)));
 };
 
-const api = function *() {
-    yield takeEvery(API, fetchApiData);
-};
-
-const rootSaga = function *() {
+const rootSaga = function*() {
     yield all([
         logger(),
-        api()
+        apifetchRecipes()
     ]);
 };
 

@@ -10,6 +10,8 @@ rules:
     func-style:
       - error
       - expression
+    no-unused-vars:
+      - warn
     quotes:
       - error
       - single

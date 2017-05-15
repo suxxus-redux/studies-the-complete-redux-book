@@ -312,7 +312,7 @@ module.exports = {
     createRecipe,
     getIngredients,
     setApiKey: value => store.dispatch(addApiKey(value)),
-    fetchData: baseUrl => store.dispatch(fetchRecipes(baseUrl)),
+    fetchRecipesData: baseUrl => store.dispatch(fetchRecipes(baseUrl)),
     getState: () => Object.assign({}, store.getState()),
     subscribe: fn => store.subscribe(fn)
 };

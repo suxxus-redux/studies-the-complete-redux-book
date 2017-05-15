@@ -1,6 +1,6 @@
 const {
     createRecipe,
-    fetchData,
+    fetchRecipesData,
     getState,
     setApiKey,
     subscribe
@@ -15,8 +15,8 @@ const updateRecipes = () => {
 // -------------------
 // recipes App
 // -------------------
-const fetchRecipesData = () => {
-    fetchData('http://localhost:4000');
+const fetchRecipes = () => {
+    fetchRecipesData('http://localhost:4000');
 };
 
 const createGuacamoleRecipe = () => {
@@ -37,6 +37,6 @@ subscribe(updateRecipes);
 
 module.exports = {
     setApiKey,
-    fetchRecipesData,
+    fetchRecipes,
     createGuacamoleRecipe
 };

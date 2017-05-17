@@ -1,8 +1,0 @@
-[{
-    "name": "dev",
-    "port": 4000,
-    "fixtures": {
-        "/api": "public/data"
-    }
-}]
-

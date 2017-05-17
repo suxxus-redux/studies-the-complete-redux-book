@@ -102,14 +102,14 @@ const apiDone = () => ({ type: API_DONE });
 // ------------
 // sagas
 // ------------
-const logger = function*() {
-    yield takeEvery('*', function*(action) {
+const logger = function *() {
+    yield takeEvery('*', function *(action) {
         yield log(`ACTION: ${action.type}`);
     });
 };
 
 const fetchApiData = onSuccess =>
-    function*(action) {
+    function *(action) {
         yield put(apiStarts());
         const state = yield select();
 
@@ -148,17 +148,18 @@ const fetchApiData = onSuccess =>
         yield put(apiDone());
     };
 
-const cancelApiTask = function*(task) {
+const cancelApiTask = function *(task) {
     yield cancel(task);
     yield put(apiDone());
 };
 
-const apifetchRecipes = function*() {
+const apifetchRecipes = function *() {
     const fetchTask = yield fork(takeEvery, API.RECIPES, fetchApiData(json => normalizer(json.books)));
+
     yield fork(takeLatest, API_CANCEL_FETCH_RECIPES, cancelApiTask, fetchTask);
 };
 
-const rootSaga = function*() {
+const rootSaga = function *() {
     yield all([
         logger(),
         apifetchRecipes()

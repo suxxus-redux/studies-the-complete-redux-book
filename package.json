@@ -6,15 +6,13 @@
   "scripts": {
     "dev": "watch -p 'src/**/*.js' -c 'npm run lint'",
     "lint": "eslint --color --fix src || true",
-    "start": "freddie",
+    "start": "node server/index.js",
     "update": "updtr"
   },
   "devDependencies": {
-    "benv": "3.2.0",
     "eslint": "3.19.0",
     "eslint-cli": "1.1.0",
     "eslint-config-eslint": "4.0.0",
-    "freddie": "0.5.1",
     "updtr": "1.0.0",
     "watch-cli": "0.2.1"
   },
@@ -23,12 +21,18 @@
     "studies"
   ],
   "dependencies": {
+    "body-parser": "^1.17.1",
+    "compression": "^1.6.2",
+    "cors": "^2.8.3",
+    "express": "^4.15.2",
     "lodash.compose": "2.4.1",
     "lodash.keys": "4.2.0",
     "lodash.last": "3.0.0",
     "node-fetch": "1.6.3",
     "normalizr": "^3.2.2",
+    "path": "^0.12.7",
     "redux": "3.6.0",
-    "redux-saga": "^0.15.3"
+    "redux-saga": "^0.15.3",
+    "socket.io": "^2.0.1"
   }
 }

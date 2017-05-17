@@ -35,8 +35,7 @@ app.get('/api/recipes', (req, res) => {
         dir: path.join(__dirname, 'data'),
         base: 'recipes.json',
     });
-
-    console.log(file);
+    console.log('--> recipes.json');
     res
         .status(200)
         .send(getJsonFromFile(file));

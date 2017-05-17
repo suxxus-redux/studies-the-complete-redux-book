@@ -17,7 +17,8 @@ const updateRecipes = () => {
 // recipes App
 // -------------------
 const fetchRecipes = () => {
-    fetchRecipesData('http://localhost:4000');
+    const baseUrl = 'http://localhost:8080';
+    fetchRecipesData(baseUrl);
 };
 
 const createGuacamoleRecipe = () => {

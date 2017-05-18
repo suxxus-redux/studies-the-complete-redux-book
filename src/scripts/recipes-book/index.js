@@ -13,6 +13,7 @@ const log = console.log.bind(console); /* eslint no-console:"off" */
 
 const updateRecipes = () => {
     log('state --> \n', getState(), '\n ==============');
+    log(`is fetching ... ${getState().requests > 0}`);
 };
 
 // -------------------
@@ -36,7 +37,7 @@ const createGuacamoleRecipe = () => {
 };
 
 // subscribe for changes
-subscribe(updateRecipes);
+// subscribe(updateRecipes);
 
 module.exports = {
     setApiKey,

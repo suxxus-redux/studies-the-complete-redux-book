@@ -55,14 +55,16 @@ const asyncActionTypes = type => ({
 // actions
 const ADD_RECIPE = 'add.recipe';
 const ADD_INGREDIENT = 'add.ingredient';
+const ADD_API_KEY = 'api.key';
+
 const API = {
     RECIPES: 'api.fetch.recipes'
 };
-const API_CANCEL_FETCH_RECIPES = 'api.cancel.fetch.recipes';
 const API_STARTS = 'api.starts';
 const API_DONE = 'api.done';
+const API_CANCEL_FETCH_RECIPES = 'api.cancel.fetch.recipes';
 const FETCH_RECIPES = asyncActionTypes('fetch.recipes');
-const ADD_API_KEY = 'api.key';
+
 
 const OPEN_WS = 'open.ws';
 const WS_STATUS = {
@@ -95,7 +97,9 @@ const wsMessage = msg => ({
 });
 
 const wsDisconnect = () => ({ type: WS_DISCONNECT });
+
 const wsConnected = () => ({ type: WS_CONNECTED, payload: WS_STATUS.OPEN });
+
 const wsDisconnected = () => ({ type: WS_DISCONNECTED, payload: WS_STATUS.CLOSED });
 
 const apiCancelFetchRecipes = () => ({ type: API_CANCEL_FETCH_RECIPES });

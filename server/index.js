@@ -40,18 +40,19 @@ app.get('/api/recipes', (req, res) => {
         .status(200)
         .send(getJsonFromFile(file));
 });
-//};
 
 // IO
-// io.on('connect', function(socket) {
-//     socket.on('name', data => {
-//         socket.emit('greet', `hello ${data}`);
-//     });
+io.on('connection', (socket) => {
+    socket.on('ws.to.server', ({ payload = '', type = '' }) => {
+        const actions = {
+            'ws.connected': () => socket.emit('from.server', { type: 'ws.message', payload: 'hello from server' }),
+            default: () => socket.emit('from.server', { type: 'ws.disconnect', payload: '' })
+        };
 
-//     socket.on('resp', data => {
-//         socket.emit('helloAgain', `${data}`);
-//     });
-// });
+        const doAction = actions[type] || actions.default;
+        doAction();
+    });
+});
 
 server.listen(8080, () => {
     const host = server.address().address;

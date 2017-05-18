@@ -4,6 +4,8 @@ const {
     cancelFetchRecipes,
     getState,
     setApiKey,
+    openWS,
+    closeWS,
     subscribe
 } = require('./recipes-app');
 
@@ -16,8 +18,7 @@ const updateRecipes = () => {
 // -------------------
 // recipes App
 // -------------------
-const fetchRecipes = () => {
-    const baseUrl = 'http://localhost:8080';
+const fetchRecipes = baseUrl => {
     fetchRecipesData(baseUrl);
 };
 
@@ -39,6 +40,8 @@ subscribe(updateRecipes);
 
 module.exports = {
     setApiKey,
+    openWS,
+    closeWS,
     fetchRecipes,
     cancelFetchRecipes,
     createGuacamoleRecipe

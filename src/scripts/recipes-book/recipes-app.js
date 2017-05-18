@@ -1,11 +1,14 @@
 const last = require('lodash.last');
 const createSagaMiddleware = require('redux-saga').default;
+
+const eventChannel = require('redux-saga').eventChannel;
 const compose = require('lodash.compose');
 const keys = require('lodash.keys');
 const nodeFetch = require('node-fetch');
 const { normalize, schema } = require('normalizr');
 const { createStore, combineReducers, applyMiddleware } = require('redux');
-const { all, call, cancel, fork, put, takeEvery, takeLatest, select } = require('redux-saga/effects');
+const { all, call, cancel, fork, put, take, takeEvery, takeLatest, select } = require('redux-saga/effects');
+const io = require('socket.io-client');
 
 // -----------
 // helpers
@@ -41,7 +44,7 @@ const normalizer = (data = []) => {
 };
 
 // ------------
-// constants
+// types
 // ------------
 const asyncActionTypes = type => ({
     PENDING: `${type}.pending`,
@@ -49,6 +52,7 @@ const asyncActionTypes = type => ({
     ERROR: `${type}.error`
 });
 
+// actions
 const ADD_RECIPE = 'add.recipe';
 const ADD_INGREDIENT = 'add.ingredient';
 const API = {
@@ -60,6 +64,18 @@ const API_DONE = 'api.done';
 const FETCH_RECIPES = asyncActionTypes('fetch.recipes');
 const ADD_API_KEY = 'api.key';
 
+const OPEN_WS = 'open.ws';
+const WS_STATUS = {
+    OPEN: 1,
+    CLOSED: 2
+};
+const WS_CONNECTED = 'ws.connected';
+const WS_DISCONNECT = 'ws.disconnect';
+const WS_DISCONNECTED = 'ws.disconnected';
+const WS_MESSAGE = 'ws.message';
+const WS_TO_SERVER = 'ws.to.server';
+const WS_FROM_SERVER = 'from.server';
+
 // ------------------
 // actions creators
 // ------------------
@@ -67,6 +83,20 @@ const addApiKey = apiKey => ({
     type: ADD_API_KEY,
     payload: apiKey
 });
+
+const openWs = wsRoot => ({
+    type: OPEN_WS,
+    payload: wsRoot
+});
+
+const wsMessage = msg => ({
+    type: WS_MESSAGE,
+    payload: msg
+});
+
+const wsDisconnect = () => ({ type: WS_DISCONNECT });
+const wsConnected = () => ({ type: WS_CONNECTED, payload: WS_STATUS.OPEN });
+const wsDisconnected = () => ({ type: WS_DISCONNECTED, payload: WS_STATUS.CLOSED });
 
 const apiCancelFetchRecipes = () => ({ type: API_CANCEL_FETCH_RECIPES });
 
@@ -159,9 +189,91 @@ const apifetchRecipes = function *() {
     yield fork(takeLatest, API_CANCEL_FETCH_RECIPES, cancelApiTask, fetchTask);
 };
 
+const connect = wsroot =>
+    () => new Promise(resolve => {
+        const socket = io(wsroot);
+
+        socket.on('connect', () => {
+            resolve(socket);
+        });
+    });
+
+const disconnect = socket =>
+    () => new Promise(resolve => {
+
+        let socketDisconnet = null;
+
+        socket.on('disconnect', () => {
+            resolve(socketDisconnet);
+        });
+
+        socketDisconnet = socket.disconnect();
+    });
+
+const subscribe = socket =>
+    eventChannel(emit => {
+        socket.on(WS_FROM_SERVER, ({ type, payload }) => {
+
+            const actions = {
+                [WS_MESSAGE]: () => emit(wsMessage(payload)),
+                [WS_DISCONNECT]: () => emit(wsDisconnect()),
+                DEFAULT: () => {}
+            };
+
+            const action = actions[type] || actions.DEFAULT;
+
+            action();
+        });
+
+        return () => {};
+    });
+
+const read = function *(socket) {
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+        const channel = yield call(subscribe, socket);
+        const action = yield take(channel);
+
+        yield put(action);
+    }
+};
+
+const write = function *(socket) {
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+        const { payload } = yield take(WS_TO_SERVER);
+
+        yield socket.emit(WS_TO_SERVER, payload);
+    }
+};
+
+const onMessage = function *(socket) {
+    yield fork(read, socket);
+    yield fork(write, socket);
+};
+
+const initializeWebSocketCommunication = function *() {
+
+    let socket;
+
+    yield takeLatest(OPEN_WS, function *(action) {
+        socket = yield call(connect(action.payload));
+        yield put(wsConnected());
+        yield fork(onMessage, socket);
+        yield put({ type: WS_TO_SERVER, payload: wsConnected() });
+    });
+
+    yield takeLatest(WS_DISCONNECT, function *() {
+        socket = yield call(disconnect(socket));
+        yield put(wsDisconnected());
+    });
+
+};
+
 const rootSaga = function *() {
     yield all([
         logger(),
+        initializeWebSocketCommunication(),
         apifetchRecipes()
     ]);
 };
@@ -260,13 +372,27 @@ const requestsError = function fetchErrorsReducer(state = {}, action) {
     return doAction();
 };
 
+const wsCommunication = function wsCommunicationReducer(state = '', action) {
+    const actions = {
+        [WS_CONNECTED]: () => action.payload,
+        [WS_DISCONNECTED]: () => action.payload,
+        [WS_MESSAGE]: () => action.payload,
+        DEFAULT: () => state
+    };
+
+    const doAction = actions[action.type] || actions.DEFAULT;
+
+    return doAction();
+};
+
 const rootReducer = combineReducers({
     apiKey,
     result,
     recipes,
     requests,
     requestsError,
-    ingredients
+    ingredients,
+    wsCommunication
 });
 
 // -------------
@@ -326,6 +452,8 @@ module.exports = {
     createRecipe,
     getIngredients,
     setApiKey: value => store.dispatch(addApiKey(value)),
+    openWS: value => store.dispatch(openWs(value)),
+    closeWS: () => store.dispatch(wsDisconnect()),
     fetchRecipesData: baseUrl => store.dispatch(fetchRecipes(baseUrl)),
     cancelFetchRecipes: () => store.dispatch(apiCancelFetchRecipes()),
     getState: () => Object.assign({}, store.getState()),

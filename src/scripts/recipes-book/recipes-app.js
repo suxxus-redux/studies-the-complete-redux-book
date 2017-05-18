@@ -13,7 +13,7 @@ const io = require('socket.io-client');
 // -----------
 // helpers
 // -----------
-const log = console.log.bind(console); /* eslint no-console:"off" */
+const log = console.log.bind(console); // eslint-disable-line no-console
 
 const fetch = (endpoint, options) =>
     nodeFetch(endpoint, options)
@@ -23,7 +23,7 @@ const fetch = (endpoint, options) =>
     .catch(error => ({ error }));
 
 const inc = value => value + 1;
-const secureValue = value => value >= 1 ? value : 0; /* eslint  no-confusing-arrow: "off" */
+const secureValue = value => value >= 1 ? value : 0; // eslint-disable-line no-confusing-arrow
 
 // --------------
 // data helpler

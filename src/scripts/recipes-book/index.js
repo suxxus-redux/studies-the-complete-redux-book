@@ -9,11 +9,10 @@ const {
     subscribe
 } = require('./recipes-app');
 
-const log = console.log.bind(console); /* eslint no-console:"off" */
+const log = console.log.bind(console); // eslint-disable-line no-console
 
-const updateRecipes = () => {
+const subscriber = () => {
     log('state --> \n', getState(), '\n ==============');
-    log(`is fetching ... ${getState().requests > 0}`);
 };
 
 // -------------------
@@ -23,27 +22,14 @@ const fetchRecipes = baseUrl => {
     fetchRecipesData(baseUrl);
 };
 
-const createGuacamoleRecipe = () => {
-    createRecipe({
-        name: 'Guacamole',
-        ingredientsList: [{
-            name: 'advocado',
-            quantity: 1
-        }, {
-            name: 'lemon',
-            quantity: '1/2'
-        }]
-    });
-};
-
 // subscribe for changes
-// subscribe(updateRecipes);
+subscribe(subscriber);
 
 module.exports = {
     setApiKey,
     openWS,
     closeWS,
-    fetchRecipes,
     cancelFetchRecipes,
-    createGuacamoleRecipe
+    fetchRecipes,
+    createRecipe
 };

@@ -17,8 +17,8 @@ const io = socketio(server);
 
 app.use(cors());
 app.use(compression());
+app.use(bodyparser.urlencoded({ extended: false }));
 app.use(bodyparser.json());
-app.use(bodyparser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // api
@@ -41,13 +41,29 @@ app.get('/api/recipes', (req, res) => {
         .send(getJsonFromFile(file));
 });
 
+app.post('/api/login', (req, res) => {
+    res
+        .status(200)
+        .send(JSON.stringify({ apiKey: 'fa8426a0-8eaf-4d22-8e13-7c1b16a9370c' }));
+});
+
+app.post('/api/logout', (req, res) => {
+    res
+        .sendStatus(204);
+});
+
 // IO
 io.on('connection', (socket) => {
-    socket.on('ws.to.server', ({ payload = '', type = '' }) => {
+    socket.on('ws.to.server', ({ payload = '', apiKey = '', type = '' }) => {
         const actions = {
             'ws.connected': () => socket.emit('from.server', { type: 'ws.message', payload: 'hello from server' }),
             default: () => socket.emit('from.server', { type: 'ws.disconnect', payload: '' })
         };
+
+        if (!apiKey) {
+            actions.default();
+            return;
+        }
 
         const doAction = actions[type] || actions.default;
         doAction();

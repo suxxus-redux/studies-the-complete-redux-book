@@ -4,6 +4,7 @@ const createSagaMiddleware = require('redux-saga').default;
 const eventChannel = require('redux-saga').eventChannel;
 const compose = require('lodash.compose');
 const keys = require('lodash.keys');
+
 const nodeFetch = require('node-fetch');
 const { normalize, schema } = require('normalizr');
 const { createStore, combineReducers, applyMiddleware } = require('redux');
@@ -55,41 +56,34 @@ const asyncActionTypes = type => ({
 // actions
 const ADD_RECIPE = 'add.recipe';
 const ADD_INGREDIENT = 'add.ingredient';
-const ADD_API_KEY = 'api.key';
 
 const API = {
+    LOGIN: 'api.login',
+    LOGOUT: 'api.logout',
     RECIPES: 'api.fetch.recipes'
 };
+const API_BASE_URL = 'api.baseUrl';
 const API_STARTS = 'api.starts';
 const API_DONE = 'api.done';
+const API_CANCEL_LOGIN = 'api.cancel.login';
+const API_CANCEL_LOGOUT = 'api.cancel.logout';
 const API_CANCEL_FETCH_RECIPES = 'api.cancel.fetch.recipes';
+const API_LOGIN = asyncActionTypes('login');
+const API_LOGOUT = asyncActionTypes('logout');
 const FETCH_RECIPES = asyncActionTypes('fetch.recipes');
 
-
-const OPEN_WS = 'open.ws';
+// const OPEN_WS = 'open.ws';
 const WS_STATUS = {
     OPEN: 1,
     CLOSED: 2
 };
+
 const WS_CONNECTED = 'ws.connected';
 const WS_DISCONNECT = 'ws.disconnect';
 const WS_DISCONNECTED = 'ws.disconnected';
 const WS_MESSAGE = 'ws.message';
 const WS_TO_SERVER = 'ws.to.server';
 const WS_FROM_SERVER = 'from.server';
-
-// ------------------
-// actions creators
-// ------------------
-const addApiKey = apiKey => ({
-    type: ADD_API_KEY,
-    payload: apiKey
-});
-
-const openWs = wsRoot => ({
-    type: OPEN_WS,
-    payload: wsRoot
-});
 
 const wsMessage = msg => ({
     type: WS_MESSAGE,
@@ -98,7 +92,7 @@ const wsMessage = msg => ({
 
 const wsDisconnect = () => ({ type: WS_DISCONNECT });
 
-const wsConnected = () => ({ type: WS_CONNECTED, payload: WS_STATUS.OPEN });
+const wsConnected = apiKey => ({ apiKey, type: WS_CONNECTED, payload: WS_STATUS.OPEN });
 
 const wsDisconnected = () => ({ type: WS_DISCONNECTED, payload: WS_STATUS.CLOSED });
 
@@ -122,10 +116,32 @@ const addIngredient = ({ name, id, recipe_id, quantity }) => ({
     }
 });
 
-const fetchRecipes = baseUrl => ({
+const setApiBaseUrl = baseUrl => ({
+    type: API_BASE_URL,
+    payload: baseUrl
+});
+
+const userLogin = data => ({
+    type: API.LOGIN,
+    payload: Object.assign({
+        endpoint: 'api/login',
+        method: 'POST',
+        data
+    }, API_LOGIN)
+});
+
+const userLogout = () => ({
+    type: API.LOGOUT,
+    payload: Object.assign({
+        endpoint: 'api/logout',
+        method: 'POST'
+    }, API_LOGOUT)
+});
+
+const fetchRecipes = () => ({
     type: API.RECIPES,
     payload: Object.assign({
-        endpoint: `${baseUrl}/api/recipes`,
+        endpoint: 'api/recipes',
         method: 'GET'
     }, FETCH_RECIPES)
 });
@@ -145,12 +161,14 @@ const logger = function *() {
 const fetchApiData = onSuccess =>
     function *(action) {
         yield put(apiStarts());
-        const state = yield select();
+        const { apiKey, apiBaseUrl } = yield select();
 
-        const { status, json, error } = yield call(fetch, action.payload.endpoint, {
+        const { status, json, error } = yield call(fetch, `${apiBaseUrl}/${action.payload.endpoint}`, {
             method: action.payload.method,
+            body: JSON.stringify(action.payload.data),
             headers: {
-                'X-Auth-Token': state.apiKey,
+                'X-Auth-Token': apiKey,
+                'Content-Type': 'application/json',
                 Accept: 'application/json'
             }
         });
@@ -172,6 +190,10 @@ const fetchApiData = onSuccess =>
             });
         }
 
+        if (status === 204) {
+            yield put({ type: action.payload.SUCCESS });
+        }
+
         if (error) {
             yield put({
                 type: action.payload.ERROR,
@@ -185,6 +207,18 @@ const fetchApiData = onSuccess =>
 const cancelApiTask = function *(task) {
     yield cancel(task);
     yield put(apiDone());
+};
+
+const apiLogin = function *() {
+    const loginTask = yield fork(takeEvery, API.LOGIN, fetchApiData(({ apiKey }) => apiKey));
+
+    yield fork(takeLatest, API_CANCEL_LOGIN, cancelApiTask, loginTask);
+};
+
+const apiLogout = function *() {
+    const logoutTask = yield fork(takeEvery, API.LOGOUT, fetchApiData());
+
+    yield fork(takeLatest, API_CANCEL_LOGOUT, cancelApiTask, logoutTask);
 };
 
 const apifetchRecipes = function *() {
@@ -260,14 +294,18 @@ const initializeWebSocketCommunication = function *() {
 
     let socket;
 
-    yield takeLatest(OPEN_WS, function *(action) {
-        socket = yield call(connect(action.payload));
+    yield takeLatest(API_LOGIN.SUCCESS, function *(action) {
+        const { apiBaseUrl, apiKey } = yield select();
+
+        socket = yield call(connect(apiBaseUrl));
+
         yield put(wsConnected());
+
         yield fork(onMessage, socket);
-        yield put({ type: WS_TO_SERVER, payload: wsConnected() });
+        yield put({ type: WS_TO_SERVER, payload: wsConnected(apiKey) });
     });
 
-    yield takeLatest(WS_DISCONNECT, function *() {
+    yield takeLatest([WS_DISCONNECT, API_LOGOUT.SUCCESS], function *() {
         socket = yield call(disconnect(socket));
         yield put(wsDisconnected());
     });
@@ -277,6 +315,8 @@ const initializeWebSocketCommunication = function *() {
 const rootSaga = function *() {
     yield all([
         logger(),
+        apiLogin(),
+        apiLogout(),
         initializeWebSocketCommunication(),
         apifetchRecipes()
     ]);
@@ -287,12 +327,35 @@ const sagaMiddleware = createSagaMiddleware();
 // ------------
 // reducers
 // ------------
-const apiKey = function apiKeyReducer(state = '', action) {
-    if (action.type === ADD_API_KEY) {
+
+const apiBaseUrl = function apiBaseUrlReducer(state = '', action) {
+    if (action.type === API_BASE_URL) {
         return action.payload;
     }
 
     return state;
+};
+
+const apiKey = function apiKeyReducer(state = '', action) {
+    const actions = {
+        [API_LOGIN.SUCCESS]: () => action.payload,
+        [API_LOGOUT.SUCCESS]: () => '',
+        DEFAULT: () => state
+    };
+    const doAction = actions[action.type] || actions.DEFAULT;
+
+    return doAction();
+};
+
+const userIsLogged = function userIsLoggedReducer(state = false, action) {
+    const actions = {
+        [API_LOGIN.SUCCESS]: () => true,
+        [API_LOGOUT.SUCCESS]: () => false,
+        DEFAULT: () => state
+    };
+    const doAction = actions[action.type] || actions.DEFAULT;
+
+    return doAction();
 };
 
 const result = function idsReducer(state = [], action) {
@@ -362,12 +425,16 @@ const requests = function uiReducer(state = 0, action) {
 };
 
 const requestsError = function fetchErrorsReducer(state = {}, action) {
+
+    const selectAction = ({ name, message }) => ({ name, message });
+
     const actions = {
+        [API_LOGIN.ERROR]: () => selectAction(action.payload),
+        [API_LOGIN.SUCCESS]: () => Object.create(null),
+        [API_LOGOUT.SUCCESS]: () => Object.create(null),
+        [API_LOGOUT.ERROR]: () => selectAction(action.payload),
         [FETCH_RECIPES.SUCCESS]: () => Object.create(null),
-        [FETCH_RECIPES.ERROR]: () => ({
-            name: action.payload.name,
-            message: action.payload.message
-        }),
+        [FETCH_RECIPES.ERROR]: () => selectAction(action.payload),
         DEFAULT: () => state
     };
 
@@ -391,6 +458,8 @@ const wsCommunication = function wsCommunicationReducer(state = '', action) {
 
 const rootReducer = combineReducers({
     apiKey,
+    apiBaseUrl,
+    userIsLogged,
     result,
     recipes,
     requests,
@@ -455,9 +524,9 @@ sagaMiddleware.run(rootSaga);
 module.exports = {
     createRecipe,
     getIngredients,
-    setApiKey: value => store.dispatch(addApiKey(value)),
-    openWS: value => store.dispatch(openWs(value)),
-    closeWS: () => store.dispatch(wsDisconnect()),
+    setBaseUrl: baseUrl => store.dispatch(setApiBaseUrl(baseUrl)),
+    login: data => store.dispatch(userLogin(data)),
+    logout: () => store.dispatch(userLogout()),
     fetchRecipesData: baseUrl => store.dispatch(fetchRecipes(baseUrl)),
     cancelFetchRecipes: () => store.dispatch(apiCancelFetchRecipes()),
     getState: () => Object.assign({}, store.getState()),

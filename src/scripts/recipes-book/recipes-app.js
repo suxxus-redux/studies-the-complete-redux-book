@@ -294,7 +294,7 @@ const initializeWebSocketCommunication = function *() {
 
     let socket;
 
-    yield takeLatest(API_LOGIN.SUCCESS, function *(action) {
+    yield takeLatest(API_LOGIN.SUCCESS, function *() {
         const { apiBaseUrl, apiKey } = yield select();
 
         socket = yield call(connect(apiBaseUrl));
